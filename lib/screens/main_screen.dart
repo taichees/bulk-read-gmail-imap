@@ -17,6 +17,9 @@ class MainScreen extends StatelessWidget {
     final credentials = authProvider.credentials;
     if (credentials == null) return;
 
+    // Verify Pro entitlement status with RevenueCat server before executing bulk read
+    await purchaseProvider.checkProStatus();
+
     final result = await mailProvider.executeBulkRead(
       credentials: credentials,
       isPro: purchaseProvider.isPro,
@@ -149,93 +152,95 @@ class MainScreen extends StatelessWidget {
             // Central Area with 240px Circular Glow Button
             Expanded(
               child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: mailProvider.isProcessing
-                          ? null
-                          : () => _handleBulkRead(context),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        width: 240,
-                        height: 240,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFFFF434F),
-                              Color(0xFFFF5252),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFF434F).withValues(
-                                alpha: mailProvider.isProcessing ? 0.2 : 0.5,
-                              ),
-                              blurRadius: mailProvider.isProcessing ? 15 : 40,
-                              spreadRadius: mailProvider.isProcessing ? 2 : 8,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: mailProvider.isProcessing
+                            ? null
+                            : () => _handleBulkRead(context),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          width: 240,
+                          height: 240,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xFFFF434F),
+                                Color(0xFFFF5252),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                          ],
-                        ),
-                        child: mailProvider.isProcessing
-                            ? const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    width: 48,
-                                    height: 48,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 4.0,
-                                    ),
-                                  ),
-                                  SizedBox(height: 20),
-                                  Text(
-                                    '既読化処理中...',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  // White Circle with Red Checkmark Icon
-                                  Container(
-                                    width: 72,
-                                    height: 72,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white,
-                                    ),
-                                    child: const Icon(
-                                      Icons.check_rounded,
-                                      size: 48,
-                                      color: Color(0xFFFF434F),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  // Bold white action text
-                                  const Text(
-                                    'すべて既読にする',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFFF434F).withValues(
+                                  alpha: mailProvider.isProcessing ? 0.2 : 0.5,
+                                ),
+                                blurRadius: mailProvider.isProcessing ? 15 : 40,
+                                spreadRadius: mailProvider.isProcessing ? 2 : 8,
                               ),
+                            ],
+                          ),
+                          child: mailProvider.isProcessing
+                              ? const Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      width: 48,
+                                      height: 48,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 4.0,
+                                      ),
+                                    ),
+                                    SizedBox(height: 20),
+                                    Text(
+                                      '既読化処理中...',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    // White Circle with Red Checkmark Icon
+                                    Container(
+                                      width: 72,
+                                      height: 72,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.white,
+                                      ),
+                                      child: const Icon(
+                                        Icons.check_rounded,
+                                        size: 48,
+                                        color: Color(0xFFFF434F),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    // Bold white action text
+                                    const Text(
+                                      'すべて既読にする',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

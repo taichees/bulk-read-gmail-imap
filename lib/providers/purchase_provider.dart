@@ -36,14 +36,10 @@ class PurchaseProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final customerInfo = await PurchaseService.identifyUser(email);
-      if (customerInfo != null) {
-        _isPro = PurchaseService.isProFromCustomerInfo(customerInfo);
-      } else {
-        _isPro = await PurchaseService.isProUser();
-      }
+      await PurchaseService.identifyUser(email);
+      _isPro = await PurchaseService.isProUser();
     } catch (e) {
-      _isPro = false;
+      _isPro = await PurchaseService.isProUnlockedLocally();
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -88,7 +84,12 @@ class PurchaseProvider extends ChangeNotifier {
 
     try {
       final success = await PurchaseService.purchasePackage(package);
-      _isPro = success;
+      if (success) {
+        await PurchaseService.saveProStatusLocally(true);
+        _isPro = true;
+      } else {
+        _isPro = await PurchaseService.isProUser();
+      }
       return success;
     } catch (e) {
       _errorMessage = '購入処理中にエラーが発生しました: ${e.toString()}';

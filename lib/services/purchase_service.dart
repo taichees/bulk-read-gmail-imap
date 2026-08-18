@@ -1,13 +1,56 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../config/env_config.dart';
+import 'auth_service.dart';
 
 /// Best-practice RevenueCat Service managing cross-platform entitlement,
 /// user identification, duplicate purchase guards, and restoration logic.
 class PurchaseService {
   static const String entitlementId = 'pro_features';
+  static const String _keyProUnlockedDevice = 'app_is_pro_unlocked_v2';
   static bool _isInitialized = false;
+
+  static const FlutterSecureStorage _storage = FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+      resetOnError: true,
+    ),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock,
+    ),
+  );
+
+  /// Saves local device Pro status to allow device-wide account sharing
+  static Future<void> saveProStatusLocally(bool isPro) async {
+    try {
+      if (isPro) {
+        await _storage.write(key: _keyProUnlockedDevice, value: 'true');
+      }
+    } catch (e) {
+      debugPrint('[PurchaseService] saveProStatusLocally error: $e');
+    }
+  }
+
+  /// Checks if device has locally unlocked Pro
+  static Future<bool> isProUnlockedLocally() async {
+    try {
+      final value = await _storage.read(key: _keyProUnlockedDevice);
+      return value == 'true';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Clears local Pro status (e.g. on full logout)
+  static Future<void> clearLocalProStatus() async {
+    try {
+      await _storage.delete(key: _keyProUnlockedDevice);
+    } catch (e) {
+      debugPrint('[PurchaseService] clearLocalProStatus error: $e');
+    }
+  }
 
   /// Initializes RevenueCat SDK using configured API key
   static Future<void> init({bool isDebug = false}) async {
@@ -42,6 +85,9 @@ class PurchaseService {
       final cleanEmail = email.trim().toLowerCase();
       debugPrint('[PurchaseService] Identifying user with email: $cleanEmail');
       final result = await Purchases.logIn(cleanEmail);
+      if (isProFromCustomerInfo(result.customerInfo)) {
+        await saveProStatusLocally(true);
+      }
       return result.customerInfo;
     } catch (e) {
       debugPrint('[PurchaseService] identifyUser error: $e');
@@ -56,6 +102,7 @@ class PurchaseService {
     try {
       debugPrint('[PurchaseService] Logging out RevenueCat user session.');
       final customerInfo = await Purchases.logOut();
+      await clearLocalProStatus();
       return customerInfo;
     } catch (e) {
       debugPrint('[PurchaseService] logout error: $e');
@@ -74,19 +121,71 @@ class PurchaseService {
     return hasActiveEntitlement || hasPurchasedProduct;
   }
 
-  /// Checks if active entitlement for 'pro_features' exists or if any product has been purchased
-  static Future<bool> isProUser() async {
+  /// Checks if any of the saved Gmail accounts (or current RevenueCat user) has active Pro status
+  static Future<bool> isProUser([List<String>? emailsToCheck]) async {
     if (!_isInitialized) await init();
-    if (!_isInitialized) return false;
+    if (!_isInitialized) return await isProUnlockedLocally();
 
     try {
-      final customerInfo = await Purchases.getCustomerInfo();
-      final isPro = isProFromCustomerInfo(customerInfo);
-      debugPrint('[PurchaseService] isProUser check: $isPro (entitlements: ${customerInfo.entitlements.active.keys}, purchasedProducts: ${customerInfo.allPurchasedProductIdentifiers})');
-      return isPro;
+      // 1. Collect all saved Gmail accounts to check
+      List<String> emails = emailsToCheck != null ? List<String>.from(emailsToCheck) : [];
+      if (emails.isEmpty) {
+        final accounts = await AuthService().getSavedAccounts();
+        emails = accounts.map((a) => a.email.trim().toLowerCase()).toList();
+      }
+
+      // Also ensure current active email is in the list
+      final activeCreds = await AuthService().getActiveCredentials();
+      final activeEmail = activeCreds?.email.trim().toLowerCase();
+      if (activeEmail != null && activeEmail.isNotEmpty && !emails.contains(activeEmail)) {
+        emails.insert(0, activeEmail);
+      }
+
+      if (emails.isEmpty) {
+        // Fallback: check current RevenueCat customer if no accounts saved
+        final customerInfo = await Purchases.getCustomerInfo();
+        final isPro = isProFromCustomerInfo(customerInfo);
+        if (isPro) {
+          await saveProStatusLocally(true);
+          return true;
+        } else {
+          await clearLocalProStatus();
+          return false;
+        }
+      }
+
+      // 2. Check each saved email against RevenueCat
+      bool anyProFound = false;
+      for (final email in emails) {
+        try {
+          final loginResult = await Purchases.logIn(email);
+          if (isProFromCustomerInfo(loginResult.customerInfo)) {
+            anyProFound = true;
+            debugPrint('[PurchaseService] Pro entitlement found for account: $email');
+            break;
+          }
+        } catch (e) {
+          debugPrint('[PurchaseService] Error checking email $email: $e');
+        }
+      }
+
+      // 3. Ensure active session is restored to the current active email
+      if (activeEmail != null && activeEmail.isNotEmpty) {
+        try {
+          await Purchases.logIn(activeEmail);
+        } catch (_) {}
+      }
+
+      if (anyProFound) {
+        await saveProStatusLocally(true);
+        return true;
+      } else {
+        await clearLocalProStatus();
+        return false;
+      }
     } catch (e) {
       debugPrint('[PurchaseService] isProUser error: $e');
-      return false;
+      return await isProUnlockedLocally();
     }
   }
 
@@ -122,6 +221,7 @@ class PurchaseService {
           final isEntitled = isProFromCustomerInfo(customerInfo);
 
           if (isEntitled) {
+            await saveProStatusLocally(true);
             return true;
           }
         } else {
@@ -149,7 +249,7 @@ class PurchaseService {
       }
     }
 
-    return false;
+    return await isProUnlockedLocally();
   }
 
   /// Restores previous in-app purchases and updates entitlement status
@@ -161,6 +261,11 @@ class PurchaseService {
         debugPrint('[PurchaseService] Restoring purchases...');
         final customerInfo = await Purchases.restorePurchases();
         final isPro = isProFromCustomerInfo(customerInfo);
+        if (isPro) {
+          await saveProStatusLocally(true);
+        } else {
+          await clearLocalProStatus();
+        }
         debugPrint('[PurchaseService] Restore result pro_features active: $isPro');
         return isPro;
       } catch (e) {
@@ -169,6 +274,6 @@ class PurchaseService {
       }
     }
 
-    return false;
+    return await isProUnlockedLocally();
   }
 }
