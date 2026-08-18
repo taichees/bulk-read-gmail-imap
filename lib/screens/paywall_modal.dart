@@ -109,6 +109,12 @@ class PaywallModal extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _buildFeatureRow(
+              icon: Icons.supervisor_account,
+              title: '複数アカウント追加・無制限管理',
+              subtitle: '2つ目以降のGmailアカウントを追加し、ワンタップで切替可能。',
+            ),
+            const SizedBox(height: 16),
+            _buildFeatureRow(
               icon: Icons.bolt,
               title: '高速なIMAP通信処理',
               subtitle: 'Gmail APIの制限に縛られず、スムーズに一括処理を実行。',

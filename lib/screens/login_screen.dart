@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/auth_provider.dart';
 import '../providers/purchase_provider.dart';
+import 'paywall_modal.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isAddingAccount;
@@ -54,6 +55,18 @@ class _LoginScreenState extends State<LoginScreen> {
     FocusScope.of(context).unfocus();
     final authProvider = context.read<AuthProvider>();
     final purchaseProvider = context.read<PurchaseProvider>();
+
+    if (widget.isAddingAccount && !purchaseProvider.isPro) {
+      PaywallModal.show(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('アカウントの追加はPro版限定機能です。'),
+          backgroundColor: Color(0xFFFF434F),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
     final success = await authProvider.login(
       _emailController.text,

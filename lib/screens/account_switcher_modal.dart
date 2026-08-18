@@ -4,6 +4,7 @@ import '../models/user_credentials.dart';
 import '../providers/auth_provider.dart';
 import '../providers/purchase_provider.dart';
 import 'login_screen.dart';
+import 'paywall_modal.dart';
 
 class AccountSwitcherModal extends StatelessWidget {
   const AccountSwitcherModal({super.key});
@@ -296,21 +297,60 @@ class AccountSwitcherModal extends StatelessWidget {
           // Add Account Button
           OutlinedButton.icon(
             onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const LoginScreen(isAddingAccount: true),
-                ),
-              );
+              if (purchaseProvider.isPro) {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const LoginScreen(isAddingAccount: true),
+                  ),
+                );
+              } else {
+                Navigator.of(context).pop();
+                PaywallModal.show(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('アカウントの追加はPro版限定機能です。'),
+                    backgroundColor: Color(0xFFFF434F),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
             },
-            icon: const Icon(Icons.person_add_alt_1, color: Color(0xFFFF434F)),
-            label: const Text(
-              'アカウントを追加',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-              ),
+            icon: Icon(
+              purchaseProvider.isPro ? Icons.person_add_alt_1 : Icons.lock_outline,
+              color: const Color(0xFFFF434F),
+            ),
+            label: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'アカウントを追加',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                if (!purchaseProvider.isPro) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF434F),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'PRO',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
