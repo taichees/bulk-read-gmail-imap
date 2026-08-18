@@ -1,0 +1,38 @@
+name: bulk_read_gmail_imap
+description: "Gmail Bulk Mark-as-Read Flutter App using IMAP without Gmail API"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # IMAP Mail Client
+  enough_mail: ^2.1.4
+
+  # Secure Storage for Credentials (Keychain/Keystore)
+  flutter_secure_storage: ^9.0.0
+
+  # RevenueCat In-App Purchases & Subscription Management
+  purchases_flutter: ^8.0.0
+
+  # Launch external URLs (Google App Passwords settings page)
+  url_launcher: ^6.3.0
+
+  # State Management
+  provider: ^6.1.2
+
+  # UI Design Enhancements
+  flutter_spinkit: ^5.2.1
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
