@@ -17,8 +17,12 @@ class PaywallModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final purchaseProvider = context.watch<PurchaseProvider>();
+    final isPro = purchaseProvider.isPro;
 
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
       padding: const EdgeInsets.only(
         top: 24,
         left: 24,
@@ -32,170 +36,215 @@ class PaywallModal extends StatelessWidget {
           top: BorderSide(color: Color(0xFF333333), width: 1),
         ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Drag handle
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: const Color(0xFF444444),
-                borderRadius: BorderRadius.circular(2),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Drag handle
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF444444),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // Crown / Pro Header Icon
-          Center(
-            child: Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFFFF434F).withValues(alpha: 0.15),
-                border: Border.all(color: const Color(0xFFFF434F), width: 1.5),
-              ),
-              child: const Icon(
-                Icons.workspace_premium,
-                size: 36,
-                color: Color(0xFFFF434F),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Title & Subtitle
-          const Text(
-            '有料版 (Pro) にアップグレード',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            '制限なしですべての未読メールを1タップで一括処理',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF888888),
-            ),
-          ),
-          const SizedBox(height: 28),
-
-          // Feature list
-          _buildFeatureRow(
-            icon: Icons.all_inclusive,
-            title: '全件一括既読機能',
-            subtitle: '50件の制限を解除し、未読メールを全件一度に既読化します。',
-          ),
-          const SizedBox(height: 16),
-          _buildFeatureRow(
-            icon: Icons.bolt,
-            title: '高速なIMAP通信処理',
-            subtitle: 'Gmail APIの制限に縛られず、スムーズに一括処理を実行。',
-          ),
-          const SizedBox(height: 16),
-          _buildFeatureRow(
-            icon: Icons.security,
-            title: '安心のプライバシー保護',
-            subtitle: 'サーバー経由なし。データは全てあなたの端末で処理されます。',
-          ),
-          const SizedBox(height: 32),
-
-          // Error Message Display
-          if (purchaseProvider.errorMessage != null) ...[
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.redAccent.withValues(alpha: 0.5)),
-              ),
-              child: Text(
-                purchaseProvider.errorMessage!,
-                style: const TextStyle(color: Colors.redAccent, fontSize: 13),
-                textAlign: TextAlign.center,
+            // Crown / Pro Header Icon
+            Center(
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isPro
+                      ? Colors.green.withValues(alpha: 0.15)
+                      : const Color(0xFFFF434F).withValues(alpha: 0.15),
+                  border: Border.all(
+                    color: isPro ? Colors.greenAccent : const Color(0xFFFF434F),
+                    width: 1.5,
+                  ),
+                ),
+                child: Icon(
+                  isPro ? Icons.verified : Icons.workspace_premium,
+                  size: 36,
+                  color: isPro ? Colors.greenAccent : const Color(0xFFFF434F),
+                ),
               ),
             ),
             const SizedBox(height: 16),
-          ],
 
-          // Buy Button
-          SizedBox(
-            height: 54,
-            child: ElevatedButton(
+            // Title & Subtitle
+            Text(
+              isPro ? 'Pro版を有効化済みです' : '有料版 (Pro) にアップグレード',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              isPro
+                  ? '制限なしですべての未読メールを一括処理できます'
+                  : '制限なしですべての未読メールを1タップで一括処理',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF888888),
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // Feature list
+            _buildFeatureRow(
+              icon: Icons.all_inclusive,
+              title: '全件一括既読機能',
+              subtitle: '50件の制限を解除し、未読メールを全件一度に既読化します。',
+            ),
+            const SizedBox(height: 16),
+            _buildFeatureRow(
+              icon: Icons.bolt,
+              title: '高速なIMAP通信処理',
+              subtitle: 'Gmail APIの制限に縛られず、スムーズに一括処理を実行。',
+            ),
+            const SizedBox(height: 16),
+            _buildFeatureRow(
+              icon: Icons.security,
+              title: '安心のプライバシー保護',
+              subtitle: 'サーバー経由なし。データは全てあなたの端末で処理されます。',
+            ),
+            const SizedBox(height: 32),
+
+            // Error Message Display
+            if (purchaseProvider.errorMessage != null) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.redAccent.withValues(alpha: 0.5)),
+                ),
+                child: Text(
+                  purchaseProvider.errorMessage!,
+                  style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Buy / Pro Active Button
+            SizedBox(
+              height: 54,
+              child: ElevatedButton(
+                onPressed: (purchaseProvider.isLoading || isPro)
+                    ? null
+                    : () async {
+                        final success = await purchaseProvider.buyPro();
+                        if (context.mounted) {
+                          if (success) {
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Pro版へのアップグレードが完了しました！'),
+                                backgroundColor: Colors.green,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('購入処理を完了できませんでした。'),
+                                backgroundColor: Colors.redAccent,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isPro ? const Color(0xFF2E7D32) : const Color(0xFFFF434F),
+                  disabledBackgroundColor: isPro ? const Color(0xFF1B5E20) : const Color(0xFF552226),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 4,
+                ),
+                child: purchaseProvider.isLoading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (isPro) ...[
+                            const Icon(Icons.check, color: Colors.white, size: 20),
+                            const SizedBox(width: 8),
+                          ],
+                          Text(
+                            isPro ? 'Pro版購入済み (有効)' : 'Pro版を購入する',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Restore Purchases Button
+            TextButton(
               onPressed: purchaseProvider.isLoading
                   ? null
                   : () async {
-                      final success = await purchaseProvider.buyPro();
-                      if (context.mounted && success) {
-                        Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Pro版へのアップグレードが完了しました！'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
+                      final restored = await purchaseProvider.restorePurchases();
+                      if (context.mounted) {
+                        if (restored) {
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('以前の購入が正常に復元されました！'),
+                              backgroundColor: Colors.green,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('復元可能な購入情報が見つかりませんでした。'),
+                              backgroundColor: Colors.orangeAccent,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
                       }
                     },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF434F),
-                disabledBackgroundColor: const Color(0xFF552226),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+              child: const Text(
+                '購入内容を復元する (Restore)',
+                style: TextStyle(
+                  color: Color(0xFF888888),
+                  fontSize: 14,
+                  decoration: TextDecoration.underline,
+                  decorationColor: Color(0xFF888888),
                 ),
-                elevation: 4,
-              ),
-              child: purchaseProvider.isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      'Pro版を購入する',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Restore Purchases Button
-          TextButton(
-            onPressed: purchaseProvider.isLoading
-                ? null
-                : () async {
-                    final restored = await purchaseProvider.restorePurchases();
-                    if (context.mounted) {
-                      if (restored) {
-                        Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('以前の購入が正常に復元されました！'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      }
-                    }
-                  },
-            child: const Text(
-              '購入内容を復元する (Restore)',
-              style: TextStyle(
-                color: Color(0xFF888888),
-                fontSize: 14,
-                decoration: TextDecoration.underline,
-                decorationColor: Color(0xFF888888),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

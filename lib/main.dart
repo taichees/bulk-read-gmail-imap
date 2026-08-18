@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'config/env_config.dart';
 import 'providers/auth_provider.dart';
 import 'providers/mail_provider.dart';
 import 'providers/purchase_provider.dart';
@@ -16,16 +17,38 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // If environmental configuration file is missing/not passed via --dart-define-from-file
+    if (!EnvConfig.isConfigured) {
+      return MaterialApp(
+        title: 'エラー - 設定ファイル不足',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData.dark(),
+        home: const EnvErrorScreen(),
+      );
+    }
+
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider()..checkSavedCredentials(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => MailProvider(),
-        ),
+        // 1. PurchaseProvider must be initialized first so AuthProvider can access it
         ChangeNotifierProvider(
           create: (_) => PurchaseProvider()..init(),
+        ),
+        // 2. AuthProvider initialized with identity linkage callback
+        ChangeNotifierProvider(
+          create: (context) {
+            final authProvider = AuthProvider();
+            final purchaseProvider = context.read<PurchaseProvider>();
+            authProvider.checkSavedCredentials(
+              onUserIdentified: (email) {
+                purchaseProvider.identifyUser(email);
+              },
+            );
+            return authProvider;
+          },
+        ),
+        // 3. MailProvider
+        ChangeNotifierProvider(
+          create: (_) => MailProvider(),
         ),
       ],
       child: MaterialApp(
@@ -50,9 +73,124 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/// Screen displayed when --dart-define-from-file=config/env.dev.json is missing
+class EnvErrorScreen extends StatelessWidget {
+  const EnvErrorScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0A0A0A),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(28.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.red.withValues(alpha: 0.15),
+                  border: Border.all(color: Colors.redAccent, width: 1.5),
+                ),
+                child: const Icon(
+                  Icons.warning_amber_rounded,
+                  size: 40,
+                  color: Colors.redAccent,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                '環境設定ファイルが見つかりません',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                '`--dart-define-from-file` にて設定ファイル（config/env.dev.json または env.prod.json）が指定されていません。',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFFAAAAAA),
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 28),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E1E),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF333333)),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '【起動コマンド】',
+                      style: TextStyle(
+                        color: Color(0xFFFF434F),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    SelectableText(
+                      'flutter run --dart-define-from-file=config/env.dev.json',
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        color: Colors.white,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Authentication Gate switching between LoginScreen and MainScreen
-class AuthGate extends StatelessWidget {
+class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Re-check entitlement state on app foreground (refund/revocation check)
+    if (state == AppLifecycleState.resumed) {
+      if (mounted) {
+        context.read<PurchaseProvider>().checkProStatus();
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

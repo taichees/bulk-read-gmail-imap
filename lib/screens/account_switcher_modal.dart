@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/user_credentials.dart';
 import '../providers/auth_provider.dart';
+import '../providers/purchase_provider.dart';
 import 'login_screen.dart';
 
 class AccountSwitcherModal extends StatelessWidget {
@@ -56,7 +57,17 @@ class AccountSwitcherModal extends StatelessWidget {
     );
 
     if (confirmed == true && context.mounted) {
-      context.read<AuthProvider>().removeAccount(creds.email);
+      final purchaseProvider = context.read<PurchaseProvider>();
+      context.read<AuthProvider>().removeAccount(
+        creds.email,
+        onAccountChanged: (newEmail) {
+          if (newEmail != null) {
+            purchaseProvider.identifyUser(newEmail);
+          } else {
+            purchaseProvider.logout();
+          }
+        },
+      );
     }
   }
 
@@ -98,13 +109,19 @@ class AccountSwitcherModal extends StatelessWidget {
 
     if (confirmed == true && context.mounted) {
       Navigator.of(context).pop();
-      context.read<AuthProvider>().logoutAll();
+      final purchaseProvider = context.read<PurchaseProvider>();
+      context.read<AuthProvider>().logoutAll(
+        onLogout: () {
+          purchaseProvider.logout();
+        },
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
+    final purchaseProvider = context.watch<PurchaseProvider>();
     final savedAccounts = authProvider.savedAccounts;
     final activeEmail = authProvider.credentials?.email.toLowerCase() ?? '';
 
@@ -192,7 +209,12 @@ class AccountSwitcherModal extends StatelessWidget {
                   onTap: isActive
                       ? null
                       : () {
-                          authProvider.switchAccount(creds);
+                          authProvider.switchAccount(
+                            creds,
+                            onUserIdentified: (email) {
+                              purchaseProvider.identifyUser(email);
+                            },
+                          );
                           Navigator.of(context).pop();
                         },
                   borderRadius: BorderRadius.circular(14),

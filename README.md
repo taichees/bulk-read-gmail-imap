@@ -7,79 +7,68 @@ Gmail API審査を完全に回避し、`enough_mail` を利用して直接 `imap
 ## 🌟 特徴
 
 - **Gmail API審査不要**: IMAP直結により、Google Cloud Consoleの審査や制限を気にせずアプリを配布・運用可能。
-- **セキュア認証情報保存**: `flutter_secure_storage` により、ログイン情報を端末の暗号化領域（Keychain / Keystore）へ安全に保存。
+- **マルチアカウント＆セキュア保存**: `flutter_secure_storage` により、複数アカウントのログイン情報を端末の暗号化領域（Keychain / Keystore）へ安全に保存・1タップ切り替え。
 - **RevenueCat 課金連携**: `purchases_flutter` を用いたフリーミアムモデル構築。
   - **無料版**: 1回の実行で最新50件まで既読化。
   - **有料版 (Pro)**: 未読メールを「全件一括」で既読化。
-- **洗練されたダークUI**: ピュアブラック (`#000000`) 背景に、240pxの光彩付き赤色円形メインボタンを配したUI。
+- **環境別API Key分離管理（Git漏洩防止）**: 開発用（Test Store）と本番用のAPIキーを分離管理し、ソースコード内に鍵をハードコーディングしない安全な設計。
 
 ---
 
-## 📁 フォルダ構成
+## 🔑 環境変数・RevenueCat API Keyの管理
 
+本アプリではFlutter公式推奨の `--dart-define-from-file` を使用し、秘密鍵をソースコードにハードコーディングせず分離管理しています。起動時に指定がない場合は安全のため起動を中断し、環境エラー画面が表示されます。
+
+### 1. 設定ファイルの配置
+
+プロジェクト直下の `config/` ディレクトリに環境別設定ファイルを配置します。
+
+- `config/env.json.example` (Gitにコミットされる設定テンプレート)
+- `config/env.dev.json` (ローカル開発用・Test Storeキー／**Git除外**)
+- `config/env.prod.json` (本番用キー／**Git除外**)
+
+※ `config/*.json` （`.example` を除く）は `.gitignore` に登録されているため、Gitにコミットされません。
+
+#### `config/env.dev.json` (ローカル開発時)
+
+```json
+{
+  "REVENUECAT_KEY_IOS": "appl_YOUR_TEST_STORE_IOS_KEY",
+  "REVENUECAT_KEY_ANDROID": "goog_YOUR_TEST_STORE_ANDROID_KEY",
+  "IS_PRODUCTION": false
+}
 ```
-bulk-read-gmail-imap/
-├── pubspec.yaml
-├── android/
-│   └── app/src/main/AndroidManifest.xml
-├── ios/
-│   └── Runner/Info.plist
-├── lib/
-│   ├── main.dart                       # アプリ登録・AuthGate
-│   ├── models/
-│   │   └── user_credentials.dart       # 認証情報モデル
-│   ├── services/
-│   │   ├── auth_service.dart           # KeyChain/KeyStore安全保存
-│   │   ├── mail_service.dart           # IMAP (enough_mail) 一括既読ロジック
-│   │   └── purchase_service.dart       # RevenueCat (purchases_flutter) 連携
-│   ├── providers/
-│   │   ├── auth_provider.dart          # ログイン・認証状態管理
-│   │   ├── mail_provider.dart          # 既読化実行状態管理
-│   │   └── purchase_provider.dart      # 有料会員判定管理
-│   └── screens/
-│       ├── login_screen.dart           # ログイン画面
-│       ├── main_screen.dart            # メイン画面 (240pxボタン)
-│       └── paywall_modal.dart          # 課金モーダル
-└── README.md
+
+#### `config/env.prod.json` (本番ビルド時)
+
+```json
+{
+  "REVENUECAT_KEY_IOS": "appl_PROD_KEY_HERE",
+  "REVENUECAT_KEY_ANDROID": "goog_PROD_KEY_HERE",
+  "IS_PRODUCTION": true
+}
 ```
 
 ---
 
-## 🚀 セットアップ・実行手順
+## 🚀 実行・ビルドコマンド
 
-### 1. 依存関係のインストール
+起動時は必ず `--dart-define-from-file` オプションで該当の環境設定ファイルを渡してください。設定ファイルが指定されていない場合、アプリは起動時に警告画面を出力します。
 
-```bash
-flutter pub get
-```
-
-### 2. RevenueCat API Keyの設定
-
-`lib/services/purchase_service.dart` 内の API Key を自身のRevenueCatプロジェクトのキーに置き換えてください。
-
-```dart
-static const String _revenueCatApiKeyIOS = 'appl_YOUR_REVENUECAT_IOS_KEY';
-static const String _revenueCatApiKeyAndroid = 'goog_YOUR_REVENUECAT_ANDROID_KEY';
-```
-
-### 3. アプリの起動
+### 1. ローカル開発（dev設定ファイルを指定）
 
 ```bash
-flutter emulators
-2 available emulators:
+flutter run --dart-define-from-file=config/env.dev.json
+```
 
-Id                  • Name          • Manufacturer • Platform
+### 2. 本番用ビルド（prod設定ファイルを指定）
 
-apple_ios_simulator • iOS Simulator • Apple        • ios
-Pixel_8a            • Pixel 8a      • Google       • android
+```bash
+# Android App Bundle 本番ビルド
+flutter build appbundle --release --dart-define-from-file=config/env.prod.json
 
-# Android
-flutter emulators --launch Pixel_8a
-flutter run -d Pixel_8a
-
-# iOS
-flutter emulators --launch apple_ios_simulator
-flutter run -d apple_ios_simulator
+# iOS IPA 本番ビルド
+flutter build ipa --release --dart-define-from-file=config/env.prod.json
 ```
 
 ---

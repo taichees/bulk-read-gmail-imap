@@ -278,9 +278,11 @@ class MainScreen extends StatelessWidget {
                         child: Text(
                           purchaseProvider.isPro
                               ? '有料版：一回ですべての未読を処理します'
-                              : '無料版：1回で最新50件まで既読にします',
-                          style: const TextStyle(
-                            color: Color(0xFF888888),
+                              : '無料版：1回で最新50件まで既読（タップしてProにアップグレード）',
+                          style: TextStyle(
+                            color: purchaseProvider.isPro
+                                ? const Color(0xFF888888)
+                                : const Color(0xFFCCCCCC),
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),

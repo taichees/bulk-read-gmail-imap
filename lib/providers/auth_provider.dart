@@ -23,7 +23,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _status == AuthStatus.authenticated;
 
   /// Checks secure storage for stored accounts on app startup
-  Future<void> checkSavedCredentials() async {
+  Future<void> checkSavedCredentials({Function(String email)? onUserIdentified}) async {
     _isLoading = true;
     notifyListeners();
 
@@ -33,6 +33,7 @@ class AuthProvider extends ChangeNotifier {
 
       if (_activeCredentials != null && _activeCredentials!.isValid) {
         _status = AuthStatus.authenticated;
+        onUserIdentified?.call(_activeCredentials!.email);
       } else {
         _status = AuthStatus.unauthenticated;
       }
@@ -45,7 +46,11 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Attempts to authenticate with IMAP and saves account if successful
-  Future<bool> login(String email, String appPassword) async {
+  Future<bool> login(
+    String email,
+    String appPassword, {
+    Function(String email)? onUserIdentified,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -67,6 +72,7 @@ class AuthProvider extends ChangeNotifier {
       _savedAccounts = await _authService.getSavedAccounts();
       _activeCredentials = creds;
       _status = AuthStatus.authenticated;
+      onUserIdentified?.call(creds.email);
       _isLoading = false;
       notifyListeners();
       return true;
@@ -80,20 +86,27 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Switches active account to selected credentials
-  Future<void> switchAccount(UserCredentials target) async {
+  Future<void> switchAccount(
+    UserCredentials target, {
+    Function(String email)? onUserIdentified,
+  }) async {
     _isLoading = true;
     notifyListeners();
 
     await _authService.switchActiveAccount(target.email);
     _activeCredentials = target;
     _status = AuthStatus.authenticated;
+    onUserIdentified?.call(target.email);
 
     _isLoading = false;
     notifyListeners();
   }
 
   /// Removes a saved account
-  Future<void> removeAccount(String email) async {
+  Future<void> removeAccount(
+    String email, {
+    Function(String? newActiveEmail)? onAccountChanged,
+  }) async {
     _isLoading = true;
     notifyListeners();
 
@@ -105,17 +118,20 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.unauthenticated;
     }
 
+    onAccountChanged?.call(_activeCredentials?.email);
+
     _isLoading = false;
     notifyListeners();
   }
 
   /// Logs out of all accounts and clears secure storage
-  Future<void> logoutAll() async {
+  Future<void> logoutAll({VoidCallback? onLogout}) async {
     await _authService.clearAllCredentials();
     _savedAccounts = [];
     _activeCredentials = null;
     _status = AuthStatus.unauthenticated;
     _errorMessage = null;
+    onLogout?.call();
     notifyListeners();
   }
 }

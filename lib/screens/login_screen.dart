@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/auth_provider.dart';
+import '../providers/purchase_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isAddingAccount;
@@ -52,10 +53,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
     FocusScope.of(context).unfocus();
     final authProvider = context.read<AuthProvider>();
+    final purchaseProvider = context.read<PurchaseProvider>();
 
     final success = await authProvider.login(
       _emailController.text,
       _passwordController.text,
+      onUserIdentified: (email) {
+        purchaseProvider.identifyUser(email);
+      },
     );
 
     if (!mounted) return;
