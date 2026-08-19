@@ -81,3 +81,11 @@ flutter build ipa --release --dart-define-from-file=config/env.prod.json
 2. **2段階認証プロセス** を有効化。
 3. [アプリ パスワード](https://myaccount.google.com/apppasswords) 画面でアプリパスワード（16桁）を生成。
 4. 生成された16桁の英数字をアプリに入力してログイン。
+
+---
+
+## 🔒 プライバシーポリシー
+
+- **URL**: [https://bulk-read-gmail-privacy.tsushinryo.com](https://bulk-read-gmail-privacy.tsushinryo.com)
+- **ソース管理**: `web_privacy/index.html`
+

@@ -241,6 +241,20 @@ flutter build ipa --release --dart-define-from-file=config/env.prod.json
 
 ---
 
-## 7. まとめ
+## 7. プライバシーポリシー (Privacy Policy)
+
+- **公開URL**: [https://bulk-read-gmail-privacy.tsushinryo.com](https://bulk-read-gmail-privacy.tsushinryo.com)
+- **ソースファイル**: `web_privacy/index.html`
+- **主要規定項目**:
+  - 外部中継サーバーを介さない完全ローカルIMAP通信
+  - 端末内暗号化領域（Keychain / Keystore）への認証情報保存
+  - 本文・添付ファイルの非閲覧・非取得（既読フラグ `\Seen` のみメモリ上で処理）
+  - Gmail API非使用（アプリパスワードによる直接接続）
+  - RevenueCatによる匿名化課金レシート処理
+
+---
+
+## 8. まとめ
 
 本アプリケーションは、IMAP直結通信とローカル暗号化ストレージを活用することで、高いプライバシー保護性能とAPI制限のフリーを実現した実用的なメール処理ツールです。環境変数の定義切り分けとRevenueCatの堅牢な権利連携により、安全かつ拡張性の高いモバイルプロダクトとして設計されています。
+
