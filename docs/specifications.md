@@ -1,9 +1,9 @@
-# Gmail 一括既読プロ (bulk-read-gmail-imap) アプリケーション詳細仕様書
+# Gmail 一括既読アプリ (bulk-read-gmail-imap) アプリケーション詳細仕様書
 
 ## 1. 概要 (Overview)
 
 ### 1.1 アプリ概要
-「Gmail 一括既読プロ」は、GoogleのGmail API審査を完全に回避し、IMAPプロトコル（`imap.gmail.com:993` SSL/TLS）を介してGmail内の未読メールを直接取得し、ワンタップで一括既読化するクロスプラットフォーム（iOS / Android）Flutterアプリケーションです。
+「Gmail 一括既読アプリ」は、GoogleのGmail API審査を完全に回避し、IMAPプロトコル（`imap.gmail.com:993` SSL/TLS）を介してGmail内の未読メールを直接取得し、ワンタップで一括既読化するクロスプラットフォーム（iOS / Android）Flutterアプリケーションです。
 
 ### 1.2 開発背景と目的
 - **Gmail API審査回避**: REST APIの制限やGoogle Cloud Consoleの厳密な認証審査（制限付きスコープ審査）を受けずに、安全かつ即座に導入可能。
@@ -159,7 +159,7 @@ lib/
 
 #### ④ メイン画面 (`MainScreen`)
 - **AppBar**:
-  - タイトル「一括既読プロ」
+  - タイトル「Gmail一括既読アプリ」
   - 右上「アカウント切替・管理」アイコンボタン (タップで `AccountSwitcherModal` 表示)
 - **アクティブアカウント表示チップ**:
   - アプリ上部に現在ログイン中のマスクされたメールアドレス (`abc***@gmail.com`) を表示。

@@ -82,7 +82,7 @@ class MainScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          '一括既読プロ',
+          'Gmail一括既読アプリ',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,

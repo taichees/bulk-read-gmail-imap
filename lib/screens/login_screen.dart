@@ -161,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Header Title
                   Text(
-                    widget.isAddingAccount ? '新しいGmailを追加' : '一括既読プロ',
+                    widget.isAddingAccount ? '新しいGmailを追加' : 'Gmail一括既読アプリ',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 28,

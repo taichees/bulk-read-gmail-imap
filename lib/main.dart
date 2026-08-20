@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: '一括既読プロ',
+        title: 'Gmail一括既読アプリ',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,

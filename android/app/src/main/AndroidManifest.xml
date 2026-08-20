@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        android:label="一括既読プロ"
+        android:label="Gmail一括既読アプリ"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

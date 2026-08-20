@@ -1,4 +1,4 @@
-# Gmail 一括既読プロ (IMAP Direct Connection)
+# Gmail 一括既読アプリ (IMAP Direct Connection)
 
 Gmail API審査を完全に回避し、`enough_mail` を利用して直接 `imap.gmail.com:993`（SSL/TLS）に接続し、未読メールを一括で既読化するiOS/Android対応のFlutterアプリケーションです。
 
