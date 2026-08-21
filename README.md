@@ -55,6 +55,14 @@ Gmail API審査を完全に回避し、`enough_mail` を利用して直接 `imap
 
 起動時は必ず `--dart-define-from-file` オプションで該当の環境設定ファイルを渡してください。設定ファイルが指定されていない場合、アプリは起動時に警告画面を出力します。
 
+### 0. エミュレーターの起動
+
+```bash
+flutter emulators
+flutter emulators --launch <エミュレータID>
+flutter devices
+```
+
 ### 1. ローカル開発（dev設定ファイルを指定）
 
 ```bash
@@ -88,4 +96,3 @@ flutter build ipa --release --dart-define-from-file=config/env.prod.json
 
 - **URL**: [https://bulk-read-gmail-privacy.tsushinryo.com](https://bulk-read-gmail-privacy.tsushinryo.com)
 - **ソース管理**: `web_privacy/index.html`
-

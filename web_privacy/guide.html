@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ログイン手順ガイド - Gmail 一括既読アプリ</title>
+    <style>
+      :root {
+        --bg-color: #0d1117;
+        --card-bg: #161b22;
+        --text-color: #c9d1d9;
+        --heading-color: #ffffff;
+        --accent-color: #ff434f;
+        --accent-hover: #e03844;
+        --border-color: #30363d;
+        --step-num-bg: #21262d;
+        --note-bg: rgba(255, 67, 79, 0.1);
+        --note-border: #ff434f;
+        --link-color: #58a6ff;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.7;
+        margin: 0;
+        padding: 40px 20px;
+      }
+      .container {
+        max-width: 840px;
+        margin: 0 auto;
+        background: var(--card-bg);
+        padding: 32px 40px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      }
+      .nav-bar {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .nav-link {
+        color: var(--text-color);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 6px 12px;
+        border-radius: 6px;
+        transition: background-color 0.2s, color 0.2s;
+      }
+      .nav-link:hover {
+        background-color: var(--border-color);
+        color: var(--heading-color);
+      }
+      .nav-link.active {
+        background-color: rgba(255, 67, 79, 0.15);
+        color: var(--accent-color);
+        font-weight: bold;
+      }
+      .badge {
+        display: inline-block;
+        background-color: rgba(255, 67, 79, 0.15);
+        color: var(--accent-color);
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 16px;
+      }
+      h1 {
+        color: var(--heading-color);
+        font-size: 26px;
+        border-bottom: 2px solid var(--accent-color);
+        padding-bottom: 12px;
+        margin-top: 0;
+      }
+      h2 {
+        color: var(--heading-color);
+        font-size: 20px;
+        margin-top: 36px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      p, li {
+        font-size: 15px;
+      }
+      .official-link-box {
+        background-color: rgba(88, 166, 255, 0.1);
+        border-left: 4px solid var(--link-color);
+        padding: 16px 20px;
+        border-radius: 6px;
+        margin: 24px 0;
+      }
+      .official-link-box a {
+        color: var(--link-color);
+        font-weight: bold;
+        text-decoration: none;
+        word-break: break-all;
+      }
+      .official-link-box a:hover {
+        text-decoration: underline;
+      }
+      .step-card {
+        background: #0d1117;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 24px;
+        margin-bottom: 32px;
+      }
+      .step-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .step-number {
+        background: var(--accent-color);
+        color: #ffffff;
+        font-weight: bold;
+        font-size: 14px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .step-title {
+        color: var(--heading-color);
+        font-size: 18px;
+        font-weight: bold;
+        margin: 0;
+      }
+      .step-description {
+        margin-top: 0;
+        margin-bottom: 16px;
+        color: var(--text-color);
+      }
+      .step-image-container {
+        text-align: center;
+        background-color: #010409;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 16px;
+      }
+      .step-image-container img {
+        max-width: 100%;
+        max-height: 480px;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      }
+      .image-caption {
+        font-size: 12px;
+        color: #8b949e;
+        margin-top: 8px;
+      }
+      .note-box {
+        background-color: var(--note-bg);
+        border-left: 4px solid var(--note-border);
+        padding: 16px;
+        border-radius: 6px;
+        margin-top: 32px;
+      }
+      .note-box h3 {
+        margin-top: 0;
+        color: var(--accent-color);
+        font-size: 16px;
+      }
+      .footer {
+        margin-top: 40px;
+        font-size: 12px;
+        color: #8b949e;
+        border-top: 1px solid var(--border-color);
+        padding-top: 20px;
+        display: flex;
+        justify-content: space-between;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="nav-bar">
+        <a href="index.html" class="nav-link">プライバシーポリシー</a>
+        <a href="guide.html" class="nav-link active">ログイン手順ガイド</a>
+      </div>
+
+      <div class="badge">公式セットアップマニュアル</div>
+      <h1>Gmail 一括既読アプリ ログイン手順ガイド</h1>
+      
+      <p>
+        本ガイドでは、「Gmail 一括既読アプリ」の初期ログイン手順を分かりやすく解説します。<br />
+        本アプリはGoogle REST APIを使用せず、標準的なIMAP暗号化通信を用いて端末から直接Gmailサーバーと通信します。そのため、安全にご利用いただくためにGoogleアカウントの「<strong>アプリ パスワード</strong>」を使用します。
+      </p>
+
+      <div class="official-link-box">
+        <strong>💡 Google公式ヘルプページ:</strong><br />
+        アプリ パスワードの概要や詳細な注意事項については、Google公式ヘルプをご参照ください。<br />
+        <a href="https://support.google.com/mail/answer/185833?hl=ja" target="_blank" rel="noopener noreferrer">
+          https://support.google.com/mail/answer/185833?hl=ja
+        </a>
+      </div>
+
+      <h2>ログイン手順（全6ステップ）</h2>
+
+      <!-- STEP 1 -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">1</div>
+          <h3 class="step-title">アプリのログイン画面を開く</h3>
+        </div>
+        <p class="step-description">
+          アプリを起動するとログイン画面が表示されます。<br />
+          入力項目には「<strong>Gmailアドレス</strong>」と「<strong>アプリパスワード（16桁）</strong>」があります。アプリパスワードをまだお持ちでない場合は、画面中央の「<strong>Googleアプリパスワードの取得方法</strong>」ボタンをタップします。
+        </p>
+        <div class="step-image-container">
+          <img src="images/step1_app_login_screen.jpg" alt="ステップ1: アプリログイン画面" />
+          <div class="image-caption">ステップ1: アプリ初期ログイン画面</div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">2</div>
+          <h3 class="step-title">Googleアカウントへのログインと本人確認</h3>
+        </div>
+        <p class="step-description">
+          ブラウザ（Chrome等）が開き、Googleアカウントのログイン画面が表示されます。<br />
+          連携したいGmailアカウントを選択し、画面の指示に従ってパスキーや指紋認証・パスワード入力などで本人確認を完了させます。
+        </p>
+        <div class="step-image-container">
+          <img src="images/step2_google_account_select.jpg" alt="ステップ2: Googleアカウント選択・認証" />
+          <div class="image-caption">ステップ2: Googleアカウント選択および本人認証画面</div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">3</div>
+          <h3 class="step-title">アプリ パスワードの新規作成</h3>
+        </div>
+        <p class="step-description">
+          Googleアカウントの「アプリ パスワード」設定ページが開きます。<br />
+          「アプリ名」の入力欄に「<code>Gmail一括既読</code>」など分かりやすい名前を入力し、「<strong>作成</strong>」ボタンをタップします。
+        </p>
+        <div class="step-image-container">
+          <img src="images/step3_create_app_password.jpg" alt="ステップ3: アプリ パスワード作成画面" />
+          <div class="image-caption">ステップ3: アプリ名を入力して「作成」をタップ</div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">4</div>
+          <h3 class="step-title">16桁のアプリ パスワードをコピーする</h3>
+        </div>
+        <p class="step-description">
+          「生成されたアプリ パスワード」ダイアログが表示され、黄色の枠内に16桁の英字コードが表示されます。<br />
+          この16桁のコードを長押ししてコピー（またはメモ）し、画面下の「<strong>完了</strong>」をタップします。
+        </p>
+        <div class="step-image-container">
+          <img src="images/step4_generated_password_popup.jpg" alt="ステップ4: 生成されたアプリ パスワードダイアログ" />
+          <div class="image-caption">ステップ4: 生成された16桁のアプリ パスワードをコピー</div>
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">5</div>
+          <h3 class="step-title">アプリに戻り、アカウント情報とパスワードを入力</h3>
+        </div>
+        <p class="step-description">
+          「Gmail 一括既読アプリ」画面に戻ります。<br />
+          ご自身の「<strong>Gmailアドレス</strong>」を入力し、「<strong>アプリパスワード（16桁）</strong>」欄に先ほどコピーした16桁のコードを貼り付けます。<br />
+          入力後、「<strong>ログインして始める</strong>」ボタンをタップします。
+        </p>
+        <div class="step-image-container">
+          <img src="images/step5_input_credentials.jpg" alt="ステップ5: アドレスとパスワードの入力" />
+          <div class="image-caption">ステップ5: メールアドレスと16桁のアプリ パスワードを入力してログイン</div>
+        </div>
+      </div>
+
+      <!-- STEP 6 -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">6</div>
+          <h3 class="step-title">ログイン完了・メール一括既読の開始</h3>
+        </div>
+        <p class="step-description">
+          IMAP認証が成功するとログインが完了し、メイン画面が表示されます。<br />
+          画面上部にログイン中のGmailアカウントが表示され、「<strong>すべて既読にする</strong>」ボタンをタップすることで、未読メールを一括で既読化できます。
+        </p>
+        <div class="step-image-container">
+          <img src="images/step6_login_success.jpg" alt="ステップ6: ログイン完了・メイン画面" />
+          <div class="image-caption">ステップ6: ログイン完了・一括既読実行画面</div>
+        </div>
+      </div>
+
+      <div class="note-box">
+        <h3>🔒 セキュリティとプライバシーについて</h3>
+        <p style="margin: 0;">
+          入力されたGmailアドレスおよびアプリ パスワードは、お使いの端末内の安全な暗号化領域（iOS: Keychain / Android: Keystore）にのみ保存されます。開発者や第三者が管理する外部中継サーバーに送信・収集されることは一切ありません。
+        </p>
+      </div>
+
+      <div class="footer">
+        <div>発行日: 2026年8月21日</div>
+        <div>運営者: tsushinryo.com</div>
+      </div>
+    </div>
+  </body>
+</html>
