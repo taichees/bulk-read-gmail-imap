@@ -9,6 +9,7 @@
 - **Gmail API審査回避**: REST APIの制限やGoogle Cloud Consoleの厳密な認証審査（制限付きスコープ審査）を受けずに、安全かつ即座に導入可能。
 - **プライバシー保護**: ユーザーのメール本文やログイン認証情報を第三者サーバー経由せず、すべて端末内の暗号化領域（Keychain / Keystore）のみでローカル処理。
 - **マネタイズ構造**: RevenueCatを活用し、無料版（50件制限）と有料プロ版（全件一括既読化＆マルチアカウント対応）のフリーミアムモデルを提供。
+- **安心の導入体験**: アプリ内およびWebサイト（`web_privacy/guide.html`）にて、全6ステップの画像付き公式セットアップ・ログイン手順ガイドを提供。
 
 ### 1.3 主要技術スタック
 | 分類 | 使用技術 / パッケージ | バージョン / 詳細 |
@@ -17,8 +18,8 @@
 | **状態管理** | `provider` | `^6.1.2` (MultiProvider構造) |
 | **IMAP通信** | `enough_mail` | `^2.1.4` (`ImapClient` 通信) |
 | **セキュアストレージ** | `flutter_secure_storage` | `^9.0.0` (Keychain / EncryptedSharedPreferences) |
-| **課金サブスクリプション** | `purchases_flutter` | `^8.0.0` (RevenueCat SDK) |
-| **ブラウザ起動** | `url_launcher` | `^6.3.0` (Googleアプリパスワード設定ページ移動用) |
+| **課金サブスクリプション** | `purchases_flutter` | `^8.0.0` (RevenueCat SDK + Local StoreKit 2 Testing) |
+| **ブラウザ起動** | `url_launcher` | `^6.3.0` (ログイン手順ガイド＆Googleアプリパスワード設定ページ移動用) |
 | **UIコンポーネント** | `flutter_spinkit`, `cupertino_icons` | マテリアル＆ダークテーマ統合 |
 
 ---
@@ -31,20 +32,21 @@
        │
        ▼
 [ Provider Layer (State Management) ]
- ├── AuthProvider
- ├── MailProvider
- └── PurchaseProvider
+  ├── AuthProvider
+  ├── MailProvider
+  └── PurchaseProvider
        │
        ▼
 [ Service Layer (Business Logic & External API) ]
- ├── AuthService        ───► flutter_secure_storage (Keychain/Keystore)
- ├── MailService        ───► enough_mail (imap.gmail.com:993)
- └── PurchaseService    ───► purchases_flutter (RevenueCat REST Client)
+  ├── AuthService        ───► flutter_secure_storage (Keychain/Keystore)
+  ├── MailService        ───► enough_mail (imap.gmail.com:993)
+  └── PurchaseService    ───► purchases_flutter (RevenueCat REST Client)
        │
        ▼
-[ Config & Models Layer ]
- ├── EnvConfig          ───► --dart-define-from-file (環境変数)
- └── UserCredentials    ───► データモデル＆入力形式バリデーション
+[ Config, Models & Web Layer ]
+  ├── EnvConfig          ───► --dart-define-from-file (環境変数)
+  ├── UserCredentials    ───► データモデル＆入力形式バリデーション
+  └── web_privacy/       ───► 静的HTML公開ドキュメント（プライバシーポリシー＆ログインガイド）
 ```
 
 ### 2.2 ディレクトリ構成
@@ -60,14 +62,24 @@ lib/
 │   └── purchase_provider.dart   # RevenueCat課金・Pro権限状態管理
 ├── screens/
 │   ├── account_switcher_modal.dart # アカウント切替・追加・削除ダイアログ
-│   ├── login_screen.dart        # ログイン＆アカウント追加画面
+│   ├── login_screen.dart        # ログイン＆アカウント追加画面（手順ガイドリンク統合）
 │   ├── main_screen.dart         # メイン画面（一括既読アクション）
 │   └── paywall_modal.dart       # Pro版購入・復元プロモーション画面
 ├── services/
 │   ├── auth_service.dart        # セキュアストレージへの認証情報CRUD＆移行
 │   ├── mail_service.dart        # IMAP通信・ソケット処理・UNSEEN既読化
-│   └── purchase_service.dart    # RevenueCat API連携＆同一端末権限共有
+│   └── purchase_service.dart    # RevenueCat API連携・StoreKitテスト＆自動フォールバック
 └── main.dart                    # エントリポイント・MultiProvider設定・AuthGate
+
+ios/
+├── Products.storekit            # StoreKit Configuration (ルート参照用)
+└── Runner/
+    └── Products.storekit        # StoreKit Configuration (ローカル課金テスト用)
+
+web_privacy/
+├── guide.html                   # 公式ログイン手順ガイド (全6ステップ画像付き)
+├── index.html                   # プライバシーポリシー (ナビゲーションヘッダー統合)
+└── images/                      # 黒塗り加工済みステップ解説スクリーンショット (step1~6)
 ```
 
 ---
@@ -115,6 +127,12 @@ lib/
 - **RevenueCat SDK 統合**:
   - Entitlement ID: `pro_features`
   - 初回起動時・アプリフォアグラウンド復帰時 (`resumed`) に最新の購入権利状態を自動検証。
+- **ローカル StoreKit 2 テスト環境 (`Products.storekit`)**:
+  - App Store Connect 未開設状態での開発・テストに対応するため、`ios/Runner/Products.storekit` を設定。
+  - Product ID（ASCII）：`gmail_pro_test`, `com.tsushinryo.bulkreadgmail.pro`, `pro_features`, `gmail_bulk_read_pro`
+  - `Runner.xcscheme` の `storeKitConfigurationFileReference = "Runner/Products.storekit"` により、iOSシミュレータ上でのローカル決済モーダル表示をサポート。
+- **`CONFIGURATION_ERROR (Code 23)` デバッグ自動フォールバック**:
+  - ダッシュボードやApp Store Connect未設定に伴う `CONFIGURATION_ERROR` 発生時、デバッグモード（`kDebugMode`）では自動的にローカル Pro 解放（`saveProStatusLocally(true)`）を実行。開発者がUI・ロジック検証でブロックされない堅牢な設計。
 - **マルチアカウント＆端末内権限共有設計**:
   - 同一端末内で1つのアカウントが Pro を購入している場合、端末ローカルストレージ (`app_is_pro_unlocked_v2`) に記録。
   - 端末内で別のアカウントに切り替えた場合でも、Pro版権限を継続利用可能にする柔軟な設計。
@@ -150,7 +168,9 @@ lib/
   - アプリロゴ＆タイトル
   - Gmailアドレス入力フィールド（バリデーション付き）
   - アプリパスワード（16桁）入力フィールド（表示/非表示切り替え対応）
-  - 「Googleアプリパスワードの取得方法」リンク (外部ブラウザ起動)
+  - **ヘルプ＆ガイドエリア (Wrapレスポンシブ配置)**:
+    - **「ログイン手順ガイド」** ボタン (アイコン `Icons.help_outline_rounded`, Web手順書 `https://bulk-read-gmail-privacy.tsushinryo.com/guide.html` をブラウザ起動)
+    - **「Googleアプリパスワードの取得方法」** リンク (アイコン `Icons.open_in_new`, Google公式設定ページ移動)
   - ログイン実行ボタン（IMAP接続テスト中はインジケーター表示）
   - セキュリティ保護に関する注記枠
 - **アカウント追加モード (`isAddingAccount: true`)**:
@@ -229,6 +249,12 @@ lib/
 flutter run --dart-define-from-file=config/env.dev.json
 ```
 
+#### iOS シミュレータ Local StoreKit テスト実行
+```bash
+# StoreKit Configuration (Products.storekit) を読み込んで起動
+flutter run -d simulator --dart-define-from-file=config/env.dev.json
+```
+
 #### Android App Bundle 本番ビルド
 ```bash
 flutter build appbundle --release --dart-define-from-file=config/env.prod.json
@@ -241,20 +267,24 @@ flutter build ipa --release --dart-define-from-file=config/env.prod.json
 
 ---
 
-## 7. プライバシーポリシー (Privacy Policy)
+## 7. Webドキュメント & プライバシーポリシー (Web Documentation & Privacy)
 
-- **公開URL**: [https://bulk-read-gmail-privacy.tsushinryo.com](https://bulk-read-gmail-privacy.tsushinryo.com)
-- **ソースファイル**: `web_privacy/index.html`
-- **主要規定項目**:
-  - 外部中継サーバーを介さない完全ローカルIMAP通信
-  - 端末内暗号化領域（Keychain / Keystore）への認証情報保存
-  - 本文・添付ファイルの非閲覧・非取得（既読フラグ `\Seen` のみメモリ上で処理）
-  - Gmail API非使用（アプリパスワードによる直接接続）
-  - RevenueCatによる匿名化課金レシート処理
+本アプリではユーザーへの透明性と審査基準の準拠のため、静的Webドキュメント（`web_privacy/`）を公開・運用しています。
+
+- **公開ホスティングURL**:
+  - **プライバシーポリシー**: [https://bulk-read-gmail-privacy.tsushinryo.com](https://bulk-read-gmail-privacy.tsushinryo.com) (`web_privacy/index.html`)
+  - **公式ログイン手順ガイド**: [https://bulk-read-gmail-privacy.tsushinryo.com/guide.html](https://bulk-read-gmail-privacy.tsushinryo.com/guide.html) (`web_privacy/guide.html`)
+
+- **主要ドキュメント構造**:
+  - `web_privacy/index.html`: 完全ローカル通信、データ非収集、RevenueCat処理等のポリシー規定 + 手順ガイドへの上部相互ナビゲーション。
+  - `web_privacy/guide.html`:
+    - 全6ステップの図解入りセットアップ・ログインマニュアル。
+    - 各ステップに黒塗り加工（個人情報・パスワードマスキング）済みのスクリーンショット画像 (`web_privacy/images/step1~6.jpg`) を埋め込み。
+    - Google公式ヘルプページ（[https://support.google.com/mail/answer/185833?hl=ja](https://support.google.com/mail/answer/185833?hl=ja)）の参照リンクを提示。
 
 ---
 
 ## 8. まとめ
 
-本アプリケーションは、IMAP直結通信とローカル暗号化ストレージを活用することで、高いプライバシー保護性能とAPI制限のフリーを実現した実用的なメール処理ツールです。環境変数の定義切り分けとRevenueCatの堅牢な権利連携により、安全かつ拡張性の高いモバイルプロダクトとして設計されています。
-
+本アプリケーションは、IMAP直結通信とローカル暗号化ストレージを活用することで、高いプライバシー保護性能とAPI制限のフリーを実現した実用的なメール処理ツールです。
+アプリ内の直感的なログイン手順ガイドリンク、安全なローカル StoreKit 2 テスト環境、環境変数の動的分離、およびRevenueCatの堅牢な権利連携により、安全かつ拡張性の高いモバイルプロダクトとして設計されています。
