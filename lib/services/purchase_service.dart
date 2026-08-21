@@ -235,6 +235,15 @@ class PurchaseService {
           return false;
         }
 
+        // Handle configuration error (Code 23) in debug mode to allow local testing without App Store Connect
+        if (errorCode == PurchasesErrorCode.configurationError) {
+          debugPrint('[PurchaseService] ConfigurationError caught. Falling back to local test unlock in debug mode.');
+          if (kDebugMode) {
+            await saveProStatusLocally(true);
+            return true;
+          }
+        }
+
         // Handle already purchased error by restoring purchases
         if (errorCode == PurchasesErrorCode.productAlreadyPurchasedError) {
           debugPrint('[PurchaseService] Product already purchased error caught. Triggering restore.');
@@ -245,6 +254,10 @@ class PurchaseService {
         rethrow;
       } catch (e) {
         debugPrint('[PurchaseService] Error during purchase: $e');
+        if (kDebugMode) {
+          await saveProStatusLocally(true);
+          return true;
+        }
         rethrow;
       }
     }
