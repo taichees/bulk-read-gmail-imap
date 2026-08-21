@@ -25,6 +25,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   static const String _appPasswordHelpUrl =
       'https://myaccount.google.com/apppasswords';
+  static const String _loginGuideUrl =
+      'https://bulk-read-gmail-privacy.tsushinryo.com/guide.html';
 
   @override
   void dispose() {
@@ -35,6 +37,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _openHelpUrl() async {
     final uri = Uri.parse(_appPasswordHelpUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('ブラウザを開くことができませんでした。'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _openGuideUrl() async {
+    final uri = Uri.parse(_loginGuideUrl);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
@@ -279,26 +297,47 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Help Link: Googleアプリパスワードの取得方法
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      onPressed: _openHelpUrl,
-                      icon: const Icon(
-                        Icons.open_in_new,
-                        size: 16,
-                        color: Color(0xFFFF434F),
-                      ),
-                      label: const Text(
-                        'Googleアプリパスワードの取得方法',
-                        style: TextStyle(
+                  // Help Links
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      TextButton.icon(
+                        onPressed: _openGuideUrl,
+                        icon: const Icon(
+                          Icons.help_outline_rounded,
+                          size: 16,
                           color: Color(0xFFFF434F),
-                          fontSize: 13,
-                          decoration: TextDecoration.underline,
-                          decorationColor: Color(0xFFFF434F),
+                        ),
+                        label: const Text(
+                          'ログイン手順ガイド',
+                          style: TextStyle(
+                            color: Color(0xFFFF434F),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                            decorationColor: Color(0xFFFF434F),
+                          ),
                         ),
                       ),
-                    ),
+                      TextButton.icon(
+                        onPressed: _openHelpUrl,
+                        icon: const Icon(
+                          Icons.open_in_new,
+                          size: 16,
+                          color: Color(0xFF888888),
+                        ),
+                        label: const Text(
+                          'Googleアプリパスワードの取得方法',
+                          style: TextStyle(
+                            color: Color(0xFF888888),
+                            fontSize: 13,
+                            decoration: TextDecoration.underline,
+                            decorationColor: Color(0xFF888888),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 28),
 
